@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DocChat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#0e0f16; --surface:#171a24; --inset:#13151e;
+    --line:#262a38; --line2:#343a4d;
+    --text:#eceef5; --muted:#949ab0; --faint:#626883;
+    --accent:#8b93f5; --accent-dim:#5b63c4; --good:#58c98a; --warn:#eab54e; --bad:#ef7a5e;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.55;min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:840px;margin:0 auto;padding:34px 20px 72px}
+  h1,h2,h3{font-family:"Archivo",system-ui,sans-serif;letter-spacing:-.015em;margin:0}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+  .hero{margin-bottom:26px}
+  .brandrow{display:flex;align-items:center;gap:13px;margin-bottom:14px}
+  .mark{width:42px;height:42px;flex:0 0 auto;color:var(--accent)}
+  .brandrow h1{font-size:1.55rem;font-weight:800}
+  .brandrow .tagline{color:var(--muted);font-size:.85rem;margin-top:1px;text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+  .synopsis{color:#cdd2e0;font-size:1.04rem;max-width:64ch;margin:0}
+  .synopsis b{color:var(--text);font-weight:600}
+  .pipeline{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center;color:var(--muted);font-size:.82rem}
+  .pipeline .step{font-family:"IBM Plex Mono",monospace;border:1px solid var(--line2);border-radius:7px;padding:4px 9px;color:#c6cbe0}
+  .pipeline .arr{color:var(--faint)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:18px}
+  .drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;
+    cursor:pointer;background:var(--inset);border:1px solid var(--line2);border-radius:12px;padding:30px 20px;
+    transition:border-color .15s,background .15s}
+  .drop:hover,.drop.over{border-color:var(--accent);background:#171a28}
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .drop .upic{width:28px;height:28px;color:var(--muted);margin-bottom:4px}
+  .drop:hover .upic,.drop.over .upic{color:var(--accent)}
+  .drop .big{font-family:"Archivo",sans-serif;font-weight:600;font-size:1rem}
+  .drop .sub{color:var(--muted);font-size:.82rem}
+
+  .docbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--inset);
+    border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.86rem}
+  .docbar .nm{font-family:"Archivo",sans-serif;font-weight:700}
+  .docbar .meta{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:.78rem}
+  .keynote{background:rgba(234,181,78,.09);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;
+    color:#e7cf9a;font-size:.84rem;margin-bottom:14px}
+  .keynote b{color:#f2d79f}
+
+  .askrow{display:flex;gap:10px}
+  .askrow input{flex:1;min-width:0;background:var(--inset);border:1px solid var(--line2);border-radius:10px;
+    padding:12px 14px;color:var(--text);font-size:.98rem;font-family:inherit}
+  .askrow input:focus{outline:none;border-color:var(--accent)}
+  button.go{font-family:"Archivo",sans-serif;background:var(--accent);color:#0b0d1a;border:0;border-radius:10px;
+    padding:11px 20px;font-weight:700;font-size:.95rem;cursor:pointer}
+  button.go:hover:not(:disabled){background:#a2a9f8}
+  button.go:disabled{background:var(--line2);color:var(--faint);cursor:default}
+  .examples{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .ex{font-size:.78rem;color:var(--muted);border:1px dashed var(--line2);border-radius:999px;padding:4px 11px;cursor:pointer}
+  .ex:hover{border-color:var(--accent);color:var(--text)}
+
+  .answer{margin-top:16px}
+  .answer h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+  .atext{font-size:1.02rem;line-height:1.7;color:#eef0f7;white-space:pre-wrap}
+  .cite{font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;color:var(--accent);
+    background:rgba(139,147,245,.14);border-radius:5px;padding:1px 5px;margin:0 1px;cursor:pointer;vertical-align:.1em}
+  .amodel{color:var(--faint);font-size:.74rem;margin-top:8px;font-family:"IBM Plex Mono",monospace}
+
+  .sources{margin-top:18px}
+  .sources h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+  .src{background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;transition:border-color .2s}
+  .src.hi{border-color:var(--accent)}
+  .src .sh{display:flex;align-items:center;gap:10px;font-size:.76rem;color:var(--muted);margin-bottom:5px;font-family:"IBM Plex Mono",monospace}
+  .src .sn{color:var(--accent);font-weight:600}
+  .src .bar{flex:0 0 70px;height:5px;background:var(--line);border-radius:99px;overflow:hidden}
+  .src .bar>div{height:100%;background:var(--accent)}
+  .src .st{font-size:.86rem;color:#c0c5d6;line-height:1.5}
+
+  .err{color:var(--bad);margin-top:12px;font-size:.9rem}
+  .hidden{display:none !important}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line2);border-top-color:var(--accent);
+    border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .phase{color:var(--muted);font-size:.86rem}
+  .explain{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;color:#cdd2e0;font-size:.88rem;background:var(--surface)}
+  .explain .k{font-family:"Archivo",sans-serif;font-weight:700;color:var(--accent);text-transform:uppercase;
+    letter-spacing:.05em;font-size:.74rem;flex:0 0 auto;padding-top:2px}
+  .explain b{color:var(--text)}
+  footer{text-align:center;color:var(--faint);font-size:.78rem;margin-top:26px}
+  footer .mono{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="brandrow">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H17l3 3v11.5A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5Z"/>
+        <path d="M8 10h8M8 13.5h8M8 17h5"/>
+      </svg>
+      <div><h1>DocChat</h1><div class="tagline">RAG · chat with a PDF, grounded in the text</div></div>
+    </div>
+    <p class="synopsis">
+      Upload a PDF and ask questions. The app <b>chunks and embeds</b> the document,
+      <b>retrieves</b> the passages most relevant to your question, and has <b>Claude answer
+      only from those passages — with citations</b>. No hallucinated facts: every claim points
+      back to a numbered source you can read.
+    </p>
+    <div class="pipeline">
+      <span class="step">chunk</span><span class="arr">→</span>
+      <span class="step">embed</span><span class="arr">→</span>
+      <span class="step">retrieve</span><span class="arr">→</span>
+      <span class="step">ground</span><span class="arr">→</span>
+      <span class="step">cite</span>
+    </div>
+  </header>
+
+  <!-- upload -->
+  <div class="card" id="uploadCard">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="application/pdf" />
+      <svg class="upic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>
+      </svg>
+      <div class="big">Drop a PDF here, or click to choose</div>
+      <div class="sub mono" id="fname">embeddings run locally · nothing leaves your machine until you ask</div>
+    </label>
+    <div class="phase" id="ingestPhase" style="margin-top:12px"></div>
+    <p class="err hidden" id="ingestErr"></p>
+  </div>
+
+  <!-- chat -->
+  <div class="card hidden" id="chatCard">
+    <div class="docbar">
+      <span class="nm" id="docName">—</span>
+      <span class="meta" id="docMeta"></span>
+    </div>
+    <div class="keynote hidden" id="keynote">
+      <b>Retrieval-only mode.</b> No <span class="mono">ANTHROPIC_API_KEY</span> is set, so the app
+      shows the passages it retrieved but can't generate the written answer. Set a key to turn on Claude's grounded answers.
+    </div>
+    <div class="askrow">
+      <input id="q" type="text" placeholder="Ask something about the document…" />
+      <button class="go" id="ask" disabled>Ask</button>
+    </div>
+    <div class="examples" id="examples"></div>
+    <div class="answer hidden" id="answer">
+      <h3>Answer</h3>
+      <div class="atext" id="atext"></div>
+      <div class="amodel" id="amodel"></div>
+    </div>
+    <div class="sources hidden" id="sourcesWrap">
+      <h3>Retrieved passages</h3>
+      <div id="sources"></div>
+    </div>
+    <p class="err hidden" id="qErr"></p>
+  </div>
+
+  <div class="explain">
+    <span class="k">How</span>
+    <div>Text is split into overlapping <b>chunks</b>, each embedded with a local
+      <b>sentence-transformers</b> model. Your question is embedded the same way, and
+      <b>cosine similarity</b> finds the closest passages. Those passages — and only those — are
+      handed to <b>Claude</b> with instructions to answer from them and cite each claim. Retrieval
+      is free and local; only the final answer calls the model.</div>
+  </div>
+
+  <footer>Pipeline: <span class="mono">sentence-transformers retrieval + Claude generation</span> · grounded, with citations</footer>
+</div>
+
+<script>
+const $=s=>document.getElementById(s);
+const fileInput=$("file"), drop=$("drop"), fname=$("fname"),
+      ingestPhase=$("ingestPhase"), ingestErr=$("ingestErr"),
+      chatCard=$("chatCard"), docName=$("docName"), docMeta=$("docMeta"),
+      keynote=$("keynote"), qInput=$("q"), askBtn=$("ask"),
+      answerEl=$("answer"), atext=$("atext"), amodel=$("amodel"),
+      sourcesWrap=$("sourcesWrap"), sourcesEl=$("sources"), qErr=$("qErr");
+let ready=false;
+
+fileInput.addEventListener("change",e=>{ if(e.target.files[0]) ingest(e.target.files[0]); });
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>{ if(e.dataTransfer.files[0]) ingest(e.dataTransfer.files[0]); });
+
+async function ingest(f){
+  if(!f.name.toLowerCase().endsWith(".pdf")){ ingestErr.textContent="Please choose a PDF."; ingestErr.classList.remove("hidden"); return; }
+  ingestErr.classList.add("hidden");
+  fname.textContent=f.name;
+  ingestPhase.innerHTML='<span class="spin"></span>Reading, chunking and embedding…';
+  const form=new FormData(); form.append("file",f);
+  let r;
+  try{
+    const res=await fetch("/api/ingest",{method:"POST",body:form});
+    r=await res.json();
+    if(!res.ok) throw new Error(r.detail||"Could not index this PDF.");
+  }catch(e){ ingestPhase.textContent=""; ingestErr.textContent=e.message; ingestErr.classList.remove("hidden"); return; }
+  ingestPhase.textContent="Indexed ✓";
+  docName.textContent=r.name;
+  docMeta.textContent=`${r.pages} pages · ${r.chunks} chunks · embedded locally`;
+  keynote.classList.toggle("hidden", r.has_key);
+  ready=true; askBtn.disabled=false;
+  chatCard.classList.remove("hidden");
+  renderExamples();
+  qInput.focus();
+}
+
+function renderExamples(){
+  const ex=["What is this document about?","Summarize the key points.","What are the main conclusions?"];
+  $("examples").innerHTML=ex.map(e=>`<span class="ex">${e}</span>`).join("");
+  document.querySelectorAll(".ex").forEach(el=>el.addEventListener("click",()=>{ qInput.value=el.textContent; ask(); }));
+}
+
+askBtn.addEventListener("click",ask);
+qInput.addEventListener("keydown",e=>{ if(e.key==="Enter") ask(); });
+
+async function ask(){
+  const question=qInput.value.trim();
+  if(!question||!ready) return;
+  qErr.classList.add("hidden"); askBtn.disabled=true;
+  answerEl.classList.remove("hidden"); sourcesWrap.classList.add("hidden");
+  atext.innerHTML='<span class="spin"></span><span class="phase">Retrieving passages and asking Claude…</span>';
+  amodel.textContent="";
+  let r;
+  try{
+    const res=await fetch("/api/query",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({question})});
+    r=await res.json();
+    if(!res.ok) throw new Error(r.detail||"Query failed.");
+  }catch(e){ atext.textContent=""; qErr.textContent=e.message; qErr.classList.remove("hidden"); askBtn.disabled=false; return; }
+
+  if(r.needs_key){
+    atext.innerHTML='<span style="color:var(--muted)">No answer generated — set an API key to enable Claude. The most relevant passages are shown below.</span>';
+    amodel.textContent="";
+  }else{
+    atext.innerHTML=withCitations(r.answer||"(no answer)");
+    amodel.textContent="answered by "+r.model+" · grounded in the passages below";
+  }
+  renderSources(r.sources||[]);
+  askBtn.disabled=false;
+}
+
+function esc(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function withCitations(txt){
+  return esc(txt).replace(/\[(\d+)\]/g,(m,n)=>`<span class="cite" data-n="${n}">${n}</span>`);
+}
+function renderSources(src){
+  sourcesWrap.classList.remove("hidden");
+  sourcesEl.innerHTML=src.map(s=>`<div class="src" id="src-${s.n}">
+    <div class="sh"><span class="sn">[${s.n}]</span><span>page ${s.page}</span>
+      <span class="bar"><div style="width:${Math.round(Math.max(0,Math.min(1,s.score))*100)}%"></div></span>
+      <span>${s.score.toFixed(2)} match</span></div>
+    <div class="st">${esc(s.text)}</div></div>`).join("");
+  document.querySelectorAll(".cite").forEach(c=>c.addEventListener("click",()=>{
+    const el=$("src-"+c.dataset.n); if(!el) return;
+    el.scrollIntoView({behavior:"smooth",block:"center"});
+    el.classList.add("hi"); setTimeout(()=>el.classList.remove("hi"),1400);
+  }));
+}
+</script>
+</body>
+</html>
